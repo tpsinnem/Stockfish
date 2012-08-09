@@ -20,10 +20,7 @@
 #if !defined MOVEPICK_H_INCLUDED
 #define MOVEPICK_H_INCLUDED
 
-#include "history.h"
-#include "position.h"
-#include "search.h"
-#include "types.h"
+#include "movepick.h"
 
 namespace {
 

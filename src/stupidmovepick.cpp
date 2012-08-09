@@ -18,11 +18,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <algorithm>
-#include <cassert>
-
-#include "movegen.h"
-#include "movepick.h"
+#include "stupidmovepick.h"
 
 
 /// Constructors of the MovePicker class. As arguments we pass information
@@ -31,7 +27,7 @@
 /// search captures, promotions and some checks) and about how important good
 /// move ordering is at the current node.
 
-MovePicker::MovePicker(const Position& p, Move ttm, Depth d, const History& h,
+StupidMovePicker::StupidMovePicker(const Position& p, Move ttm, Depth d, const History& h,
                        Search::Stack* ss, Value beta) : pos(p), H(h), depth(d) {
 
   assert(d > DEPTH_ZERO);
