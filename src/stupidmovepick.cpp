@@ -23,7 +23,6 @@
 #include <cassert>
 #include "stupidmovepick.h"
 
-
 /// Constructors of the MovePicker class. As arguments we pass information
 /// to help it to return the presumably good moves first, to decide which
 /// moves to return (in the quiescence search, for instance, we only want to
