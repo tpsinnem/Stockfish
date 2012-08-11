@@ -67,7 +67,10 @@ public:
   MovePicker(const Position&, Move, Depth, const History&, Search::Stack*, Value);
   MovePicker(const Position&, Move, Depth, const History&, Square);
   MovePicker(const Position&, Move, const History&, PieceType);
-  Move next_move();
+  virtual Move next_move();
+
+protected:
+  const Position& pos;
 
 private:
   void score_captures();
@@ -75,7 +78,6 @@ private:
   void score_evasions();
   void generate_next();
 
-  const Position& pos;
   const History& H;
   Depth depth;
   Move ttMove;

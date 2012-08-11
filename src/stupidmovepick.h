@@ -17,37 +17,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#if !defined MOVEPICK_H_INCLUDED
-#define MOVEPICK_H_INCLUDED
+#if !defined STUPIDMOVEPICK_H_INCLUDED
+#define STUPIDMOVEPICK_H_INCLUDED
 
 #include "movepick.h"
-
-namespace {
-
-  enum Sequencer {
-    MAIN_SEARCH, CAPTURES_S1, KILLERS_S1, QUIETS_1_S1, QUIETS_2_S1, BAD_CAPTURES_S1,
-    EVASION,     EVASIONS_S2,
-    QSEARCH_0,   CAPTURES_S3, QUIET_CHECKS_S3,
-    QSEARCH_1,   CAPTURES_S4,
-    PROBCUT,     CAPTURES_S5,
-    RECAPTURE,   CAPTURES_S6,
-    STOP
-  };
-
-  // Unary predicate used by std::partition to split positive scores from remaining
-  // ones so to sort separately the two sets, and with the second sort delayed.
-  inline bool has_positive_score(const MoveStack& move) { return move.score > 0; }
-
-  // Picks and moves to the front the best move in the range [firstMove, lastMove),
-  // it is faster than sorting all the moves in advance when moves are few, as
-  // normally are the possible captures.
-  inline MoveStack* pick_best(MoveStack* firstMove, MoveStack* lastMove)
-  {
-      std::swap(*firstMove, *std::max_element(firstMove, lastMove));
-      return firstMove;
-  }
-}
-
 
 /// MovePicker class is used to pick one pseudo legal move at a time from the
 /// current position. The most important method is next_move(), which returns a
@@ -56,31 +29,27 @@ namespace {
 /// beta algorithm, MovePicker attempts to return the moves which are most likely
 /// to get a cut-off first.
 
-class MovePicker {
-
-  MovePicker& operator=(const MovePicker&); // Silence a warning under MSVC
+class StupidMovePicker : public MovePicker {
 
 public:
-  MovePicker(const Position&, Move, Depth, const History&, Search::Stack*, Value);
-  MovePicker(const Position&, Move, Depth, const History&, Square);
-  MovePicker(const Position&, Move, const History&, PieceType);
-  Move next_move();
+  StupidMovePicker(const Position&, Move, Depth, const History&,
+    Search::Stack*, Value, int skill, Key focus);
+  StupidMovePicker(const Position&, Move, Depth, const History&, Square, 
+    int skill, Key focus);
+  StupidMovePicker(const Position&, Move, const History&, PieceType, int skill,
+    Key focus);
+  Move next_move(); // Override MovePicker::next_move()
 
 private:
-  void score_captures();
-  void score_noncaptures();
-  void score_evasions();
-  void generate_next();
+  bool willPrune(Move);
+  uint64_t hash(uint64_t);
 
-  const Position& pos;
-  const History& H;
-  Depth depth;
-  Move ttMove;
-  MoveStack killers[2];
-  Square recaptureSquare;
-  int captureThreshold, phase;
-  MoveStack *curMove, *lastMove, *lastQuiet, *lastBadCapture;
-  MoveStack moves[MAX_MOVES];
+  int skill;
+  Key focus;
+  bool haveReturnedLegalMove;
+  int unPruneIndex, number;
+  Move *lastPrunedLegalMove;
+  Move prunedLegalMoves[MAX_MOVES];
 };
 
-#endif // !defined(MOVEPICK_H_INCLUDED)
+#endif // !defined(STUPIDMOVEPICK_H_INCLUDED)
