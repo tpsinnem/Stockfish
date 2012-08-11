@@ -23,6 +23,7 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <ctime>
 
 #include "book.h"
 #include "evaluate.h"
@@ -48,7 +49,7 @@ namespace Search {
   // FIXME BARELY CONSIDERED PLACEHOLDER IMPLEMENTATION
   int focusSwitcher = 0;
   RKISS focusRNG;
-  Key focus = focusRNG.rand<Key>();
+  Key focus = focusRNG.rand<Key>() ^ std::time(0);
 }
 
 using std::string;
@@ -369,7 +370,7 @@ namespace {
     ss->currentMove = MOVE_NULL; // Hack to skip update gains
 
     focusSwitcher = (focusSwitcher+1)%4;
-    if (focusSwitcher == 0) focus = focusRNG.rand<Key>();
+    if (focusSwitcher == 0) focus ^= focusRNG.rand<Key>();
 
     // Iterative deepening loop until requested to stop or target depth reached
     while (!Signals.stop && ++depth <= MAX_PLY && (!Limits.depth || depth <= Limits.depth))
@@ -459,9 +460,11 @@ namespace {
             } while (abs(bestValue) < VALUE_KNOWN_WIN);
         }
 
+        /* FIXME: temporarily disabled for testing
         // Skills: Do we need to pick now the best move ?
         if (SkillLevelEnabled && depth == 1 + SkillLevel)
             skillBest = do_skill_level();
+        */
 
         if (!Signals.stop && Options["Use Search Log"])
         {
