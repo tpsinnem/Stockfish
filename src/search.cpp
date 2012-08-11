@@ -29,6 +29,7 @@
 #include "history.h"
 #include "movegen.h"
 #include "movepick.h"
+#include "stupidmovepick.h"
 #include "notation.h"
 #include "search.h"
 #include "timeman.h"
@@ -43,6 +44,11 @@ namespace Search {
   std::vector<RootMove> RootMoves;
   Position RootPosition;
   Time SearchTime;
+
+  // FIXME BARELY CONSIDERED PLACEHOLDER IMPLEMENTATION
+  int focusSwitcher = 0;
+  RKISS focusRNG;
+  Key focus = focusRNG.rand<Key>();
 }
 
 using std::string;
@@ -361,6 +367,9 @@ namespace {
     depth = BestMoveChanges = 0;
     bestValue = delta = -VALUE_INFINITE;
     ss->currentMove = MOVE_NULL; // Hack to skip update gains
+
+    focusSwitcher = (focusSwitcher+1)%4;
+    if (focusSwitcher == 0) focus = focusRNG.rand<Key>();
 
     // Iterative deepening loop until requested to stop or target depth reached
     while (!Signals.stop && ++depth <= MAX_PLY && (!Limits.depth || depth <= Limits.depth))
@@ -776,7 +785,17 @@ namespace {
         assert((ss-1)->currentMove != MOVE_NONE);
         assert((ss-1)->currentMove != MOVE_NULL);
 
-        MovePicker mp(pos, ttMove, H, pos.captured_piece_type());
+        StupidMovePicker mp(pos, ttMove, H, pos.captured_piece_type(),
+                              SkillLevel, focus);
+        /* FIXME: below doesn't work, only using StupidMovePicker now!
+        MovePicker mp;
+        if (SkillLevelEnabled) {
+          mp = new StupidMovePicker(pos, ttMove, H, pos.captured_piece_type(),
+                      SkillLevel, focus);
+        } else {
+          mp = new MovePicker(pos, ttMove, H, pos.captured_piece_type());
+        }
+        */
         CheckInfo ci(pos);
 
         while ((move = mp.next_move()) != MOVE_NONE)
@@ -808,7 +827,19 @@ namespace {
 
 split_point_start: // At split points actual search starts from here
 
-    MovePickerExt<SpNode> mp(pos, ttMove, depth, H, ss, PvNode ? -VALUE_INFINITE : beta);
+    StupidMovePicker mp(pos, ttMove, depth, H, ss,
+                      PvNode ? -VALUE_INFINITE : beta, SkillLevel, focus);
+    // FIXME: NEED a 'StupidMovePickerExt' for multithreaded search!
+    /* FIXME: Below doesn't work, only using StupidMovePicker now!
+    MovePicker mp;
+    if (SkillLevelEnabled) {
+      mp = new StupidMovePicker(pos, ttMove, depth, H, ss,
+                  PvNode ? -VALUE_INFINITE : beta, SkillLevel, focus);
+    } else {
+      mp = new MovePickerExt<SpNode>(pos, ttMove, depth, H, ss,
+                  PvNode ? -VALUE_INFINITE : beta);
+    }
+    */
     CheckInfo ci(pos);
     futilityBase = ss->eval + ss->evalMargin;
     singularExtensionNode =   !RootNode
@@ -1208,7 +1239,19 @@ split_point_start: // At split points actual search starts from here
     // to search the moves. Because the depth is <= 0 here, only captures,
     // queen promotions and checks (only if depth >= DEPTH_QS_CHECKS) will
     // be generated.
-    MovePicker mp(pos, ttMove, depth, H, to_sq((ss-1)->currentMove));
+
+    StupidMovePicker mp(pos, ttMove, depth, H,
+                      to_sq((ss-1)->currentMove), SkillLevel, focus);
+    /* FIXME: below doesn't work, using only StupidMovepicker now!
+    MovePicker mp;
+    if (SkillLevelEnabled) {
+      mp = new StupidMovePicker(pos, ttMove, depth, H,
+                  to_sq((ss-1)->currentMove), SkillLevel, focus);
+    } else {
+      mp = new MovePicker(pos, ttMove, depth, H, 
+                        to_sq((ss-1)->currentMove));
+    }
+    */
     CheckInfo ci(pos);
 
     // Loop through the moves until no moves remain or a beta cutoff occurs

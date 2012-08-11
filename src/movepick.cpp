@@ -24,32 +24,6 @@
 #include "movegen.h"
 #include "movepick.h"
 
-namespace {
-
-  enum Sequencer {
-    MAIN_SEARCH, CAPTURES_S1, KILLERS_S1, QUIETS_1_S1, QUIETS_2_S1, BAD_CAPTURES_S1,
-    EVASION,     EVASIONS_S2,
-    QSEARCH_0,   CAPTURES_S3, QUIET_CHECKS_S3,
-    QSEARCH_1,   CAPTURES_S4,
-    PROBCUT,     CAPTURES_S5,
-    RECAPTURE,   CAPTURES_S6,
-    STOP
-  };
-
-  // Unary predicate used by std::partition to split positive scores from remaining
-  // ones so to sort separately the two sets, and with the second sort delayed.
-  inline bool has_positive_score(const MoveStack& move) { return move.score > 0; }
-
-  // Picks and moves to the front the best move in the range [firstMove, lastMove),
-  // it is faster than sorting all the moves in advance when moves are few, as
-  // normally are the possible captures.
-  inline MoveStack* pick_best(MoveStack* firstMove, MoveStack* lastMove)
-  {
-      std::swap(*firstMove, *std::max_element(firstMove, lastMove));
-      return firstMove;
-  }
-}
-
 
 /// Constructors of the MovePicker class. As arguments we pass information
 /// to help it to return the presumably good moves first, to decide which
